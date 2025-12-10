@@ -1,0 +1,1 @@
+frontend for blog application
