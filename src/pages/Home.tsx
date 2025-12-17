@@ -1,10 +1,31 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import authservice from "../services/authService";
+import { postService } from "../services/postService";
+import type { Post } from "../types/Post";
 
 const Home = () => {
     const { setUser } = useAuth();
     const navigate = useNavigate();
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const response = await postService.getAllPosts(6, 0);
+                setPosts(response.posts);
+            } catch (err) {
+                setError("Failed to load posts");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -25,83 +46,63 @@ const Home = () => {
         "Career",
     ];
 
-    const posts = [
-        {
-            id: 1,
-            title: "The Future of Web Development in 2025",
-            excerpt:
-                "Explore the emerging trends and technologies that are shaping the next generation of the web...",
-            category: "Technology",
-            date: "Dec 12, 2025",
-            readTime: "5 min read",
-            image: "/post-thumb.png",
-        },
-        {
-            id: 2,
-            title: "Mastering React Hooks: A Comprehensive Guide",
-            excerpt:
-                "Deep dive into useEffect, useMemo, and useCallback to build high-performance React applications...",
-            category: "Development",
-            date: "Dec 10, 2025",
-            readTime: "8 min read",
-            image: "/post-thumb.png",
-        },
-        {
-            id: 3,
-            title: "Designing for Accessibility: Why It Matters",
-            excerpt:
-                "How to create inclusive digital experiences that work for everyone, regardless of ability...",
-            category: "Design",
-            date: "Dec 08, 2025",
-            readTime: "6 min read",
-            image: "/post-thumb.png",
-        },
-        {
-            id: 4,
-            title: "Building Scalable Microservices Architecture",
-            excerpt:
-                "Best practices for designing, deploying, and managing microservices at scale...",
-            category: "Technology",
-            date: "Dec 05, 2025",
-            readTime: "10 min read",
-            image: "/post-thumb.png",
-        },
-        {
-            id: 5,
-            title: "Remote Work: Balancing Productivity and Life",
-            excerpt:
-                "Tips and strategies for staying healthy and effective while working from home...",
-            category: "Lifestyle",
-            date: "Dec 01, 2025",
-            readTime: "4 min read",
-            image: "/post-thumb.png",
-        },
-        {
-            id: 6,
-            title: "From Junior to Senior: A Developer's Journey",
-            excerpt:
-                "Key lessons learned and advice for growing your career in software engineering...",
-            category: "Career",
-            date: "Nov 28, 2025",
-            readTime: "7 min read",
-            image: "/post-thumb.png",
-        },
-    ];
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
+    };
 
     return (
         <div className='min-h-screen bg-slate-50 font-sans text-slate-900'>
             {/* Hero Section */}
             <section className='relative w-full h-[500px] md:h-[600px] flex items-center justify-center text-center px-4 overflow-hidden'>
                 {/* Navbar */}
-                <nav className='absolute top-0 w-full z-50 px-6 py-6 flex justify-between items-center'>
-                    <div className='text-white text-2xl font-bold tracking-tight'>
-                        DevBlog.
+                <nav className='absolute top-0 w-full z-50 px-8 py-6 flex justify-between items-center'>
+                    {/* Logo */}
+                    <div className='text-white text-2xl font-extrabold tracking-tight'>
+                        Dev<span className='text-indigo-400'>Blog</span>.
                     </div>
-                    <button
-                        onClick={handleLogout}
-                        className='px-5 py-2 rounded-full bg-white/10 text-white font-medium backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300 text-sm cursor-pointer'>
-                        Sign Out
-                    </button>
+
+                    {/* Actions */}
+                    <div className='flex items-center gap-4'>
+                        {/* My Blogs */}
+                        <button
+                            onClick={() => navigate("/my-blogs")}
+                            className='
+        relative px-6 py-2.5 rounded-full
+        text-sm font-semibold text-white
+        bg-linear-to-r from-indigo-500/20 to-purple-500/20
+        backdrop-blur-lg border border-white/20
+        hover:from-indigo-500/40 hover:to-purple-500/40
+        hover:scale-105
+        transition-all duration-300
+        shadow-lg shadow-indigo-500/10
+        cursor-pointer
+      '>
+                            My Blogs
+                        </button>
+
+                        {/* Sign Out */}
+                        <button
+                            onClick={handleLogout}
+                            className='
+        relative px-6 py-2.5 rounded-full
+        text-sm font-semibold text-white
+        bg-white/10 backdrop-blur-lg
+        border border-white/20
+        hover:bg-red-500/20 hover:border-red-400/30
+        hover:text-red-300
+        hover:scale-105
+        transition-all duration-300
+        shadow-lg shadow-red-500/10
+        cursor-pointer
+      '>
+                            Sign Out
+                        </button>
+                    </div>
                 </nav>
 
                 {/* Background Overlay */}
@@ -128,12 +129,16 @@ const Home = () => {
                         design.
                     </p>
                     <div className='flex flex-col sm:flex-row items-center justify-center gap-4 pt-4'>
-                        <button className='px-8 py-3.5 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all duration-300 shadow-lg hover:shadow-indigo-500/25 w-full sm:w-auto cursor-pointer'>
+                        <Link
+                            className='px-8 py-3.5 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all duration-300 shadow-lg hover:shadow-indigo-500/25 w-full sm:w-auto cursor-pointer'
+                            to='/view/blogs'>
                             Start Reading
-                        </button>
-                        <button className='px-8 py-3.5 rounded-full bg-white/10 text-white font-semibold backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300 w-full sm:w-auto cursor-pointer'>
+                        </Link>
+                        <Link
+                            className='px-8 py-3.5 rounded-full bg-white/10 text-white font-semibold backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300 w-full sm:w-auto cursor-pointer'
+                            to='/create/blog'>
                             Create Blog
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -168,8 +173,8 @@ const Home = () => {
                             Explore our latest thinking on tech and design.
                         </p>
                     </div>
-                    <a
-                        href='#'
+                    <Link
+                        to='/view/blogs'
                         className='hidden sm:inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-700 transition-colors'>
                         View All
                         <svg
@@ -183,33 +188,93 @@ const Home = () => {
                                 clipRule='evenodd'
                             />
                         </svg>
-                    </a>
+                    </Link>
                 </div>
 
                 {/* Blog Grid */}
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
-                    {posts.map((post) => (
-                        <article
-                            key={post.id}
-                            className='group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col h-full cursor-pointer hover:-translate-y-1'>
-                            {/* Image Container */}
-                            <div className='relative h-56 overflow-hidden'>
-                                <img
-                                    src={post.image}
-                                    alt={post.title}
-                                    className='w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500'
-                                />
-                                <div className='absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-indigo-600 shadow-sm'>
-                                    {post.category}
+                {loading ? (
+                    <div className='flex justify-center items-center h-64'>
+                        <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500'></div>
+                    </div>
+                ) : error ? (
+                    <div className='text-center text-red-500 py-10'>
+                        {error}
+                    </div>
+                ) : (
+                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
+                        {posts.map((post) => (
+                            <article onClick={()=> navigate(`/blogs/${post.id}`)}
+                                key={post.id}
+                                className='group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col h-full cursor-pointer hover:-translate-y-1'>
+                                {/* Image Container */}
+                                <div className='relative h-56 overflow-hidden'>
+                                    <img
+                                        src={post.image || "/post-thumb.png"}
+                                        alt={post.title}
+                                        className='w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500'
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src =
+                                                "/post-thumb.png";
+                                        }}
+                                    />
+                                    <div className='absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-indigo-600 shadow-sm'>
+                                        {post.category}
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Content */}
-                            <div className='p-6 flex-1 flex flex-col'>
-                                <div className='flex items-center text-slate-400 text-xs mb-3 space-x-2'>
-                                    <span className='flex items-center'>
+                                {/* Content */}
+                                <div className='p-6 flex-1 flex flex-col'>
+                                    <div className='flex items-center text-slate-400 text-xs mb-3 space-x-2'>
+                                        <span className='flex items-center'>
+                                            <svg
+                                                className='w-3.5 h-3.5 mr-1'
+                                                fill='none'
+                                                viewBox='0 0 24 24'
+                                                stroke='currentColor'>
+                                                <path
+                                                    strokeLinecap='round'
+                                                    strokeLinejoin='round'
+                                                    strokeWidth={2}
+                                                    d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+                                                />
+                                            </svg>
+                                            {formatDate(post.createdAt)}
+                                        </span>
+                                        <span>•</span>
+                                        <span className='flex items-center'>
+                                            <svg
+                                                className='w-3.5 h-3.5 mr-1'
+                                                fill='none'
+                                                viewBox='0 0 24 24'
+                                                stroke='currentColor'>
+                                                <path
+                                                    strokeLinecap='round'
+                                                    strokeLinejoin='round'
+                                                    strokeWidth={2}
+                                                    d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+                                                />
+                                            </svg>
+                                            {post.readTime} min read
+                                        </span>
+                                    </div>
+
+                                    <h3 className='text-xl font-bold text-slate-800 mb-3 leading-tight group-hover:text-indigo-600 transition-colors'>
+                                        {post.title}
+                                    </h3>
+
+                                    <p className='text-slate-600 text-sm leading-relaxed mb-4 flex-1'>
+                                        {post.content.length > 100
+                                            ? `${post.content.substring(
+                                                  0,
+                                                  100
+                                              )}...`
+                                            : post.content}
+                                    </p>
+
+                                    <div className='flex items-center text-indigo-600 font-semibold text-sm group-hover:translate-x-1 transition-transform duration-300'>
+                                        Read Article
                                         <svg
-                                            className='w-3.5 h-3.5 mr-1'
+                                            className='w-4 h-4 ml-1'
                                             fill='none'
                                             viewBox='0 0 24 24'
                                             stroke='currentColor'>
@@ -217,56 +282,15 @@ const Home = () => {
                                                 strokeLinecap='round'
                                                 strokeLinejoin='round'
                                                 strokeWidth={2}
-                                                d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+                                                d='M17 8l4 4m0 0l-4 4m4-4H3'
                                             />
                                         </svg>
-                                        {post.date}
-                                    </span>
-                                    <span>•</span>
-                                    <span className='flex items-center'>
-                                        <svg
-                                            className='w-3.5 h-3.5 mr-1'
-                                            fill='none'
-                                            viewBox='0 0 24 24'
-                                            stroke='currentColor'>
-                                            <path
-                                                strokeLinecap='round'
-                                                strokeLinejoin='round'
-                                                strokeWidth={2}
-                                                d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-                                            />
-                                        </svg>
-                                        {post.readTime}
-                                    </span>
+                                    </div>
                                 </div>
-
-                                <h3 className='text-xl font-bold text-slate-800 mb-3 leading-tight group-hover:text-indigo-600 transition-colors'>
-                                    {post.title}
-                                </h3>
-
-                                <p className='text-slate-600 text-sm leading-relaxed mb-4 flex-1'>
-                                    {post.excerpt}
-                                </p>
-
-                                <div className='flex items-center text-indigo-600 font-semibold text-sm group-hover:translate-x-1 transition-transform duration-300'>
-                                    Read Article
-                                    <svg
-                                        className='w-4 h-4 ml-1'
-                                        fill='none'
-                                        viewBox='0 0 24 24'
-                                        stroke='currentColor'>
-                                        <path
-                                            strokeLinecap='round'
-                                            strokeLinejoin='round'
-                                            strokeWidth={2}
-                                            d='M17 8l4 4m0 0l-4 4m4-4H3'
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
-                        </article>
-                    ))}
-                </div>
+                            </article>
+                        ))}
+                    </div>
+                )}
 
                 <div className='mt-12 text-center sm:hidden'>
                     <a

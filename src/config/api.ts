@@ -13,18 +13,18 @@ api.interceptors.response.use(
         return response;
     },
     async (error) => {
-        const orginalRequest = error.config;
+        const originalRequest = error.config;
 
         if (
             error.response?.status === 401 &&
-            !orginalRequest._retry &&
-            !orginalRequest.url?.includes("/auth/refresh")
+            !originalRequest._retry &&
+            !originalRequest.url?.includes("/auth/refresh")
         ) {
-            orginalRequest._retry = true;
+            originalRequest._retry = true;
 
             try {
                 await api.post("/auth/refresh");
-                return api(orginalRequest);
+                return api(originalRequest);
             } catch (refreshError) {
                 return Promise.reject(refreshError);
             }
