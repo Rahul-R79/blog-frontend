@@ -36,15 +36,6 @@ const SingleBlog = () => {
         fetchPost();
     }, [id]);
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-        });
-    };
-
     const formatFullDateTime = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString("en-US", {
