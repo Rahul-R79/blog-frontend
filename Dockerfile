@@ -14,8 +14,8 @@ RUN npm ci
 COPY . .
 
 # Build-time environment variables 
-ARG VITE_API_URL=http://localhost:8080
-ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_API_GATEWAY_URL=http://localhost:8080
+ENV VITE_API_GATEWAY_URL=$VITE_API_GATEWAY_URL
 
 # Build the application
 RUN npm run build
